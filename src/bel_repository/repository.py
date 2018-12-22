@@ -177,10 +177,17 @@ class BELRepository:
             ctx.obj = Manager(connection=connection)
 
         @main.command()
+        def ls():
+            """List the contents of the repository."""
+            for directory, name in self.iterate_bel():
+                click.echo(os.path.join(directory, name))
+
+        @main.command()
+        @click.option('--use-cached', is_flag=True)
         @click.pass_obj
-        def summarize(manager: Manager):
+        def summarize(manager: Manager, use_cached: bool):
             """Summarize the repository."""
-            graph = self.get_graph(manager=manager)
+            graph = self.get_graph(manager=manager, use_cached=use_cached, use_tqdm=True)
             click.echo(graph.summary_str())
 
         return main
