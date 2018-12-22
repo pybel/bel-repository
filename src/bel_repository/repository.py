@@ -12,7 +12,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from bel_repository.metadata import BELMetadata
-from pybel import BELGraph, Manager, from_path, from_pickle, to_pickle, union
+from pybel import BELGraph, Manager, from_path, from_pickle, to_json_path, to_pickle, union
 from pybel.cli import connection_option
 
 __all__ = [
@@ -57,8 +57,11 @@ class BELRepository:
                 if file.endswith('.bel'):
                     yield root, file
 
-    def _build_cache_path(self, root, file):
+    def _build_cache_pickle_path(self, root, file):
         return os.path.join((self.output_directory if self.output_directory else root), f'{file}.pickle')
+
+    def _build_cache_json_path(self, root, file):
+        return os.path.join((self.output_directory if self.output_directory else root), f'{file}.json')
 
     @property
     def _global_cache_exists(self) -> bool:
@@ -110,7 +113,8 @@ class BELRepository:
         rv = {}
         for root, file in paths:
             path = os.path.join(root, file)
-            pickle_path = self._build_cache_path(root, path)
+            pickle_path = self._build_cache_pickle_path(root, path)
+            json_path = self._build_cache_json_path(root, path)
 
             if os.path.exists(pickle_path) and use_cached:
                 rv[path] = from_pickle(pickle_path)
@@ -122,6 +126,7 @@ class BELRepository:
                 logger.info(f' - {len(graph.warnings)} warnings')
 
             to_pickle(graph, pickle_path)
+            to_json_path(graph, json_path)
 
         return rv
 
