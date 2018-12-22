@@ -7,11 +7,13 @@ import os
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping, Optional, Tuple, Union
 
+import click
 import pandas as pd
 from tqdm import tqdm
 
 from bel_repository.metadata import BELMetadata
 from pybel import BELGraph, Manager, from_path, from_pickle, to_pickle, union
+from pybel.cli import connection_option
 
 __all__ = [
     'BELRepository',
@@ -158,3 +160,22 @@ class BELRepository:
             df.to_csv(self.bel_summary_path, sep='\t')
 
         return df
+
+    def build_cli(self):  # noqa: D202
+        """Build a command line interface."""
+
+        @click.group(help=f'Tools for the BEL repository at {self.input_directory}')
+        @connection_option
+        @click.pass_context
+        def main(ctx, connection: str):
+            """Group the commands."""
+            ctx.obj = Manager(connection=connection)
+
+        @main.command()
+        @click.pass_obj
+        def summarize(manager: Manager):
+            """Summarize the repository."""
+            graph = self.get_graph(manager=manager)
+            click.echo(graph.summary_str())
+
+        return main
