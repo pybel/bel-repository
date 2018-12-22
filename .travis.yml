@@ -24,7 +24,6 @@ jobs:
       env: TOXENV=py
 matrix:
   allow_failures:
-    - env: TOXENV=manifest
     - env: TOXENV=xenon
     - env: TOXENV=mypy
 install:
