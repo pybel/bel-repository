@@ -128,7 +128,7 @@ class BELRepository:
 
     def get_graph(self,
                   manager: Optional[Manager] = None,
-                  use_cached: bool = False,
+                  use_cached: bool = True,
                   use_tqdm: bool = False,
                   tqdm_kwargs: Optional[Mapping[str, Any]] = None,
                   from_path_kwargs: Optional[Mapping[str, Any]] = None,
@@ -157,7 +157,7 @@ class BELRepository:
 
     def get_graphs(self,
                    manager: Optional[Manager] = None,
-                   use_cached: bool = False,
+                   use_cached: bool = True,
                    use_tqdm: bool = False,
                    tqdm_kwargs: Optional[Mapping[str, Any]] = None,
                    from_path_kwargs: Optional[Mapping[str, Any]] = None,
