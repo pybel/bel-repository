@@ -6,13 +6,14 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from itertools import chain
 from typing import Any, Iterable, Mapping, Optional, Set, TextIO, Tuple, Union
 
 import click
 import pandas as pd
 from tqdm import tqdm
 
-from pybel import BELGraph, Manager, from_path, union
+from pybel import BELGraph, Manager, from_path, to_indra_statements, union
 from pybel.cli import connection_option
 from .constants import IO_MAPPING, LOCAL_SUMMARY_EXT, OUTPUT_KWARGS
 from .metadata import BELMetadata
@@ -154,6 +155,16 @@ class BELRepository:
         self._export_global(graph)
 
         return graph
+
+    def get_indra_statements(self, **kwargs):
+        """Get INDRA statements for all graphs.
+
+        :rtype: List[indra.statements.Statement]
+        """
+        return list(chain.from_iterable(
+            to_indra_statements(graph)
+            for graph in self.get_graphs(**kwargs).values()
+        ))
 
     def get_graphs(self,
                    manager: Optional[Manager] = None,
