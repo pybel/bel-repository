@@ -1,5 +1,5 @@
-BEL Repository |build|
-======================
+BEL Repository |build| |zenodo|
+===============================
 A utility for loading data from repositories of BEL documents with PyBEL [1]_.
 
 Installation |pypi_version| |python_versions| |pypi_license|
@@ -20,10 +20,16 @@ Usage
 -----
 .. code-block:: python
 
+    from typing import Mapping
+
     from bel_repository import BELRepository
-    path = '/path/to/folder/with/bel/'
-    r = BELRepository(path)
-    graphs = r.get_graphs()
+    from pybel import BELGraph
+
+    # Build a repository by giving a folder
+    bel_repository = BELRepository('/path/to/folder/with/bel/')
+
+    # Get a mapping from paths to graphs
+    graphs: Mapping[str, BELGraph] = bel_repository.get_graphs()
 
 
 References
@@ -42,3 +48,6 @@ References
 
 .. |pypi_license| image:: https://img.shields.io/pypi/l/bel_repository.svg
     :alt: License
+
+.. |zenodo| image:: https://zenodo.org/badge/162814995.svg
+   :target: https://zenodo.org/badge/latestdoi/162814995

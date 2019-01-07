@@ -16,17 +16,23 @@ class TestRepository(unittest.TestCase):
 
     def test_repository(self):
         """Test the repository class."""
-        with tempfile.TemporaryDirectory() as d:
-            p = os.path.join(d, 'efg.bel')
-            to_bel_path(egf_graph, p)
+        name = 'egf.bel'
 
-            r = BELRepository(d)
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            bel_path = os.path.join(temporary_directory, name)
+            to_bel_path(egf_graph, bel_path)
+
+            r = BELRepository(temporary_directory)
             graphs = r.get_graphs()
-            self.assertIn(p, graphs)
-            graph = graphs[p]
+
+            self.assertIn(bel_path, graphs)
+            graph = graphs[bel_path]
             self.assertEqual(graph.document, egf_graph.document)
             self.assertEqual(set(graph.edges()), set(egf_graph.edges()))
             self.assertEqual(set(graph.edges()), set(egf_graph.edges()))
+
+            self.assertTrue(os.path.exists(os.path.join(temporary_directory, f'{name}.json')))
+            self.assertTrue(os.path.exists(os.path.join(temporary_directory, f'{name}.pickle')))
 
 
 if __name__ == '__main__':
