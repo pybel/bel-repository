@@ -5,6 +5,7 @@
 import json
 import logging
 import os
+import time
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Iterable, List, Mapping, Optional, Set, TextIO, Tuple, Union
@@ -13,9 +14,10 @@ import click
 import pandas as pd
 from tqdm import tqdm
 
-from pybel import BELGraph, Manager, from_path, to_indra_statements, union
-from pybel.cli import connection_option
+from pybel import BELGraph, Manager, from_path, to_indra_statements, to_web, union
+from pybel.cli import connection_option, host_option
 from pybel.constants import CITATION, CITATION_REFERENCE, CITATION_TYPE
+from pybel.manager.citation_utils import enrich_pubmed_citations
 from .constants import IO_MAPPING, LOCAL_SUMMARY_EXT, OUTPUT_KWARGS
 from .metadata import BELMetadata
 from .utils import to_summary_json
@@ -314,11 +316,36 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         click.echo(s)
 
     @main.command()
+    @click.option('--enrich', is_flag=True)
+    @connection_option
     @click.pass_obj
-    def citations(repository: BELRepository):
+    def citations(repository: BELRepository, enrich: bool, connection: str):
         """List citations in the repository."""
-        for database, reference in sorted(set(repository._iterate_citations(use_tqdm=True)), key=lambda x: int(x[1])):
+        citations = sorted(set(repository._iterate_citations(use_tqdm=True)), key=lambda x: int(x[1]))
+        for database, reference in citations:
             click.echo(f'{database}\t{reference}')
+
+    @main.command()
+    @connection_option
+    @click.pass_obj
+    def enrich_citations(repository: BELRepository, connection: str):
+        """Enrich citations in the database."""
+        manager = Manager(connection=connection)
+        graph = repository.get_graph(manager=manager)
+        enrich_pubmed_citations(manager, graph)
+
+    @main.command()
+    @host_option
+    @click.option('-s', '--sleep', type=int, default=3, help='Seconds to sleep between sending')
+    @click.option('-p', '--public', is_flag=True)
+    @click.pass_obj
+    def upload(repository: BELRepository, host: str, sleep, public: bool):
+        """Upload all to BEL Commons."""
+        graphs = tqdm(repository.get_graphs().items())
+        for name, graph in graphs:
+            res = to_web(graph, host=host, public=public)
+            graphs.write(f'task id: {res.json()["task_id"]}: {name}')
+            time.sleep(sleep)
 
     @main.command()
     @click.confirmation_option()
