@@ -7,7 +7,7 @@ import logging
 import os
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any, Iterable, Mapping, Optional, Set, TextIO, Tuple, Union
+from typing import Any, Iterable, List, Mapping, Optional, Set, TextIO, Tuple, Union
 
 import click
 import pandas as pd
@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 from pybel import BELGraph, Manager, from_path, to_indra_statements, union
 from pybel.cli import connection_option
+from pybel.constants import CITATION, CITATION_REFERENCE, CITATION_TYPE
 from .constants import IO_MAPPING, LOCAL_SUMMARY_EXT, OUTPUT_KWARGS
 from .metadata import BELMetadata
 from .utils import to_summary_json
@@ -191,8 +192,10 @@ class BELRepository:
                     rv[path] = graph
                     continue
 
+            _from_path_kwargs = from_path_kwargs or {}
+
             try:
-                graph = rv[path] = from_path(path, manager=manager, **(from_path_kwargs or {}))
+                graph = rv[path] = from_path(path, manager=manager, **_from_path_kwargs)
             except Exception:
                 logger.warning(f'problem with {graph}')
                 continue
@@ -258,6 +261,13 @@ class BELRepository:
     def _get_global_caches(self):
         return self.get_extensions(self._cache_directory, self.bel_cache_name)
 
+    def _iterate_citations(self, **kwargs) -> Iterable[Tuple[str, str]]:
+        """List all citations in documents in this repository."""
+        for _, _, data in self.get_graph(**kwargs).edges(data=True):
+            citation = data.get(CITATION)
+            if citation is not None:
+                yield citation[CITATION_TYPE], citation[CITATION_REFERENCE]
+
 
 def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
     """Append a :py:class:`click.Group`."""
@@ -302,6 +312,13 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
             s += click.style(f' ({summary["Number of Nodes"]} nodes, {summary["Number of Edges"]} edges)', fg='blue')
 
         click.echo(s)
+
+    @main.command()
+    @click.pass_obj
+    def citations(repository: BELRepository):
+        """List citations in the repository."""
+        for database, reference in sorted(set(repository._iterate_citations(use_tqdm=True)), key=lambda x: int(x[1])):
+            click.echo(f'{database}\t{reference}')
 
     @main.command()
     @click.confirmation_option()
