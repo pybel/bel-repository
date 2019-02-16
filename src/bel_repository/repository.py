@@ -202,6 +202,7 @@ class BELRepository:
                 logger.warning(f'problem with {path}: {exc}')
                 continue
 
+            enrich_pubmed_citations(graph=graph, manager=manager)
             self._export_local(graph, root, file_name)
 
         return rv
