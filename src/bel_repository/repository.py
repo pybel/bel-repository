@@ -198,8 +198,8 @@ class BELRepository:
 
             try:
                 graph = rv[path] = from_path(path, manager=manager, **_from_path_kwargs)
-            except Exception:
-                logger.warning(f'problem with {graph}')
+            except Exception as exc:
+                logger.warning(f'problem with {path}: {exc}')
                 continue
 
             self._export_local(graph, root, file_name)
