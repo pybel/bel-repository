@@ -21,6 +21,9 @@ class BELMetadata:
     description: Optional[str] = None
     authors: Optional[str] = None
     contact: Optional[str] = None
+    license: Optional[str] = None
+    copyright: Optional[str] = None
+    disclaimer: Optional[str] = None
 
     def update(self, graph: BELGraph) -> None:
         """Update the BEL graph's metadata."""
@@ -34,3 +37,9 @@ class BELMetadata:
             graph.description = self.description
         if self.contact:
             graph.contact = self.contact
+        if self.license:
+            graph.licenses = self.license
+        if self.copyright:
+            graph.copyright = self.copyright
+        if self.disclaimer:
+            graph.disclaimer = self.disclaimer
