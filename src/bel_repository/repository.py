@@ -317,23 +317,12 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         click.echo(s)
 
     @main.command()
-    @click.option('--enrich', is_flag=True)
     @connection_option
     @click.pass_obj
-    def citations(repository: BELRepository, enrich: bool, connection: str):
+    def citations(repository: BELRepository):
         """List citations in the repository."""
-        citations = sorted(set(repository._iterate_citations(use_tqdm=True)), key=lambda x: int(x[1]))
-        for database, reference in citations:
+        for database, reference in sorted(set(repository._iterate_citations(use_tqdm=True)), key=lambda x: int(x[1])):
             click.echo(f'{database}\t{reference}')
-
-    @main.command()
-    @connection_option
-    @click.pass_obj
-    def enrich_citations(repository: BELRepository, connection: str):
-        """Enrich citations in the database."""
-        manager = Manager(connection=connection)
-        graph = repository.get_graph(manager=manager)
-        enrich_pubmed_citations(manager, graph)
 
     @main.command()
     @host_option
