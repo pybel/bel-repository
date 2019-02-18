@@ -197,6 +197,7 @@ class BELRepository:
 
             try:
                 graph = rv[path] = from_path(path, manager=manager, **_from_path_kwargs)
+                graph.path = os.path.relpath(os.path.join(root, file_name), self.directory)
             except Exception as exc:
                 logger.warning(f'problem with {path}: {exc}')
                 continue
