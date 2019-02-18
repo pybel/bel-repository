@@ -3,7 +3,6 @@
 """A container for BEL document metadata."""
 
 from dataclasses import dataclass
-
 from typing import Optional
 
 from pybel import BELGraph
