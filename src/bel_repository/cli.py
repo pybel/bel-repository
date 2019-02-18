@@ -14,6 +14,7 @@ __all__ = [
 
 
 @click.group()
+@click.version_option()
 @click.option('-d', '--directory', default=os.getcwd(), type=click.Path(file_okay=False, dir_okay=True, exists=True),
               help='Defaults to current working directory')
 @click.pass_context
