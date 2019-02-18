@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import chain
 from typing import Any, Iterable, List, Mapping, Optional, Set, TextIO, Tuple, Union
 
@@ -46,31 +46,30 @@ class BELRepository:
     global_summary_ext: str = 'summary.tsv'
     warnings_ext: str = 'warnings.tsv'
 
-    @property
-    def bel_summary_path(self) -> str:  # noqa: D401
-        """The location where the summary DataFrame will be output as a TSV."""
-        return self._build_cache_ext_path(
-            root=self._cache_directory,
+    #: The location where the summary DataFrame will be output as a TSV.
+    bel_summary_path = field(init=False)
+
+    def __post_init__(self) -> None:
+        if self.output_directory is None:
+            self.output_directory = self.directory
+
+        self.bel_summary_path = self._build_cache_ext_path(
+            root=self.output_directory,
             file_name=self.bel_cache_name,
             extension=self.global_summary_ext.lstrip('.'),
         )
 
-    @property
-    def _cache_directory(self) -> str:  # noqa: D401
-        """The output directory (defaults to input directory if not set)."""
-        return self.output_directory or self.directory
-
     def _get_global_cache_path_by_extension(self, extension: str) -> str:
-        return self._build_cache_ext_path(self._cache_directory, self.bel_cache_name, extension)
-
-    def _build_cache_ext_path(self, root: str, file_name: str, extension: str) -> str:
-        return os.path.join(root, self.cache_fmt.format(file_name=file_name, extension=extension.lstrip('.')))
+        return self._build_cache_ext_path(self.output_directory, self.bel_cache_name, extension)
 
     def _build_warnings_path(self, root: str, file_name: str) -> str:
         return self._build_cache_ext_path(root, file_name, self.warnings_ext.lstrip('.'))
 
     def _build_summary_path(self, root: str, file_name: str) -> str:
         return self._build_cache_ext_path(root, file_name, LOCAL_SUMMARY_EXT)
+
+    def _build_cache_ext_path(self, root: str, file_name: str, extension: str) -> str:
+        return os.path.join(root, self.cache_fmt.format(file_name=file_name, extension=extension.lstrip('.')))
 
     def walk(self) -> Iterable[Tuple[str, Iterable[str], Iterable[str]]]:
         """Recursively walk this directory."""
@@ -85,7 +84,7 @@ class BELRepository:
 
     def clear_global_cache(self) -> None:
         """Clear the global cache."""
-        self._remove_root_file_name(self._cache_directory, self.bel_cache_name)
+        self._remove_root_file_name(self.output_directory, self.bel_cache_name)
 
     def clear_local_caches(self) -> None:
         """Clear all caches of BEL documents in the repository."""
@@ -110,7 +109,7 @@ class BELRepository:
         return None
 
     def _import_global(self) -> Optional[BELGraph]:
-        return self._import_local(self._cache_directory, self.bel_cache_name)
+        return self._import_local(self.output_directory, self.bel_cache_name)
 
     def _export_local(self, graph: BELGraph, root: str, file_name: str) -> None:
         for extension, path in self._iterate_extension_path(root, file_name):
@@ -128,7 +127,7 @@ class BELRepository:
             warnings_df.to_csv(warnings_path, sep='\t', index=False)
 
     def _export_global(self, graph: BELGraph) -> None:
-        self._export_local(graph, self._cache_directory, self.bel_cache_name)
+        self._export_local(graph, self.output_directory, self.bel_cache_name)
 
     def get_graph(self,
                   manager: Optional[Manager] = None,
@@ -262,7 +261,7 @@ class BELRepository:
         }
 
     def _get_global_caches(self):
-        return self.get_extensions(self._cache_directory, self.bel_cache_name)
+        return self.get_extensions(self.output_directory, self.bel_cache_name)
 
     def _iterate_citations(self, **kwargs) -> Iterable[Tuple[str, str]]:
         """List all citations in documents in this repository."""
@@ -282,7 +281,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         global_caches = bel_repository._get_global_caches()
         if global_caches:
             click.secho('Global Cache', fg='red', bold=True)
-            _write_caches(bel_repository, bel_repository._cache_directory, bel_repository.bel_cache_name)
+            _write_caches(bel_repository, bel_repository.output_directory, bel_repository.bel_cache_name)
             click.secho('Local Caches', fg='red', bold=True)
 
         for root, file_name in bel_repository.iterate_bel():

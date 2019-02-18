@@ -3,6 +3,7 @@
 """A container for BEL document metadata."""
 
 from dataclasses import dataclass
+
 from typing import Optional
 
 from pybel import BELGraph
@@ -24,6 +25,12 @@ class BELMetadata:
     license: Optional[str] = None
     copyright: Optional[str] = None
     disclaimer: Optional[str] = None
+
+    def new(self) -> BELGraph:
+        """Generate a new BEL graph with the given metadata."""
+        graph = BELGraph()
+        self.update(graph)
+        return graph
 
     def update(self, graph: BELGraph) -> None:
         """Update the BEL graph's metadata."""
