@@ -8,7 +8,7 @@ import os
 import time
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Any, Iterable, List, Mapping, Optional, Set, TextIO, Tuple, Union
+from typing import Any, Iterable, Mapping, Optional, Set, TextIO, Tuple, Union
 
 import click
 import pandas as pd
@@ -49,7 +49,7 @@ class BELRepository:
     #: The location where the summary DataFrame will be output as a TSV.
     bel_summary_path: str = field(init=False)
 
-    def __post_init__(self) -> None:
+    def __post_init__(self) -> None:  # noqa: D105
         if self.output_directory is None:
             self.output_directory = self.directory
 
