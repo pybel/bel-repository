@@ -47,7 +47,7 @@ class BELRepository:
     warnings_ext: str = 'warnings.tsv'
 
     #: The location where the summary DataFrame will be output as a TSV.
-    bel_summary_path = field(init=False)
+    bel_summary_path: str = field(init=False)
 
     def __post_init__(self) -> None:
         if self.output_directory is None:
