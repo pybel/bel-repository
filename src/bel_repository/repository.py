@@ -334,8 +334,13 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         graphs = tqdm(repository.get_graphs().items())
         for name, graph in graphs:
             res = to_web(graph, host=host, public=public)
-            graphs.write(f'task id: {res.json()["task_id"]}: {name}')
-            time.sleep(sleep)
+            res_json = res.json()
+            task_id = res_json.get('task_id')
+            if task_id is not None:
+                graphs.write(f'task id: {task_id}: {name}')
+                time.sleep(sleep)
+            else:
+                graphs.write(f'problem with {name}: {res_json}')
 
     @main.command()
     @click.confirmation_option()
