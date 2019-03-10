@@ -392,3 +392,17 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
             ),
         )
         click.echo(graph.summary_str())
+
+    @main.command()
+    @click.option('-f', '--file', type=click.File('w'))
+    @click.pass_obj
+    def html(bel_repository: BELRepository, file: TextIO):
+        """Output an HTML summary."""
+        graph = bel_repository.get_graph()
+        try:
+            import pybel_tools.assembler.html
+        except ImportError:
+            click.echo('pybel_tools.assembler.html is not available', fg='red')
+            sys.exit(1)
+        else:
+            print(pybel_tools.assembler.html.to_html(graph), file=file)
