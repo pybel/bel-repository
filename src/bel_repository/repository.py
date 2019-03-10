@@ -366,7 +366,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
 
     @main.command()
     @connection_option
-    @click.option('--reload', is_flag=True)
+    @click.option('-r', '--reload', is_flag=True)
     @click.option('--no-tqdm', is_flag=True)
     @click.pass_obj
     def compile(bel_repository: BELRepository, connection: str, reload: bool, no_tqdm: bool):
