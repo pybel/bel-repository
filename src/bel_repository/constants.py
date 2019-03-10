@@ -16,9 +16,9 @@ LOCAL_SUMMARY_EXT = 'summary.json'
 IO_MAPPING = {
     'json': (to_json_path, from_json_path),
     'pickle': (to_pickle, from_pickle),
-    LOCAL_SUMMARY_EXT: (to_summary_json_path, None)
+    LOCAL_SUMMARY_EXT: (to_summary_json_path, None),
 }
 
 OUTPUT_KWARGS = {
-    'json': dict(indent=2),
+    'json': dict(indent=2, sort_keys=True),
 }
