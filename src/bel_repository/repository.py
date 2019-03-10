@@ -5,6 +5,7 @@
 import json
 import logging
 import os
+import sys
 import time
 from dataclasses import dataclass, field
 from itertools import chain
@@ -402,7 +403,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         try:
             import pybel_tools.assembler.html
         except ImportError:
-            click.echo('pybel_tools.assembler.html is not available', fg='red')
+            click.secho('pybel_tools.assembler.html is not available', fg='red')
             sys.exit(1)
         else:
             print(pybel_tools.assembler.html.to_html(graph), file=file)
