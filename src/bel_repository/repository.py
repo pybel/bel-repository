@@ -318,7 +318,6 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         click.echo(s)
 
     @main.command()
-    @connection_option
     @click.pass_obj
     def citations(repository: BELRepository):
         """List citations in the repository."""
