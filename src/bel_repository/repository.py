@@ -39,7 +39,7 @@ class BELRepository:
     output_directory: Optional[str] = None
 
     bel_cache_name: str = '_cache.bel'
-    bel_metadata: Optional[BELMetadata] = None
+    metadata: Optional[BELMetadata] = None
     formats: Tuple[str, ...] = ('pickle', 'json', 'summary.json')
 
     #: Must include {file_name} and {extension}
@@ -130,13 +130,14 @@ class BELRepository:
     def _export_global(self, graph: BELGraph) -> None:
         self._export_local(graph, self.output_directory, self.bel_cache_name)
 
-    def get_graph(self,
-                  manager: Optional[Manager] = None,
-                  use_cached: bool = True,
-                  use_tqdm: bool = False,
-                  tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-                  from_path_kwargs: Optional[Mapping[str, Any]] = None,
-                  ) -> BELGraph:
+    def get_graph(
+            self,
+            manager: Optional[Manager] = None,
+            use_cached: bool = True,
+            use_tqdm: bool = False,
+            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+            from_path_kwargs: Optional[Mapping[str, Any]] = None,
+    ) -> BELGraph:
         """Get a combine graph."""
         if use_cached:
             graph = self._import_global()
@@ -151,8 +152,8 @@ class BELRepository:
         )
         graph = union(graphs.values())
 
-        if self.bel_metadata is not None:
-            self.bel_metadata.update(graph)
+        if self.metadata is not None:
+            self.metadata.update(graph)
 
         self._get_summary_df_from_graphs(graphs)
         self._export_global(graph)
@@ -169,13 +170,14 @@ class BELRepository:
             for graph in self.get_graphs(**kwargs).values()
         ))
 
-    def get_graphs(self,
-                   manager: Optional[Manager] = None,
-                   use_cached: bool = True,
-                   use_tqdm: bool = False,
-                   tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-                   from_path_kwargs: Optional[Mapping[str, Any]] = None,
-                   ) -> Mapping[str, BELGraph]:
+    def get_graphs(
+            self,
+            manager: Optional[Manager] = None,
+            use_cached: bool = True,
+            use_tqdm: bool = False,
+            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+            from_path_kwargs: Optional[Mapping[str, Any]] = None,
+    ) -> Mapping[str, BELGraph]:
         """Get a mapping of all graphs' paths to their compiled BEL graphs."""
         if manager is None:
             manager = Manager()
@@ -208,14 +210,15 @@ class BELRepository:
 
         return rv
 
-    def get_summary_df(self,
-                       manager: Optional[Manager] = None,
-                       use_cached: bool = False,
-                       use_tqdm: bool = False,
-                       tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-                       from_path_kwargs: Optional[Mapping[str, Any]] = None,
-                       save: Union[bool, str, TextIO] = True,
-                       ) -> pd.DataFrame:
+    def get_summary_df(
+            self,
+            manager: Optional[Manager] = None,
+            use_cached: bool = False,
+            use_tqdm: bool = False,
+            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+            from_path_kwargs: Optional[Mapping[str, Any]] = None,
+            save: Union[bool, str, TextIO] = True,
+    ) -> pd.DataFrame:
         """Get a pandas DataFrame summarizing the contents of all graphs in the repository."""
         graphs = self.get_graphs(
             manager=manager,
@@ -331,16 +334,31 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
     @click.pass_obj
     def upload(repository: BELRepository, host: str, sleep, public: bool):
         """Upload all to BEL Commons."""
-        graphs = tqdm(repository.get_graphs().items())
-        for name, graph in graphs:
+        it = tqdm(repository.get_graphs().items())
+        for name, graph in it:
             res = to_web(graph, host=host, public=public)
             res_json = res.json()
             task_id = res_json.get('task_id')
             if task_id is not None:
-                graphs.write(f'task id: {task_id}: {name}')
+                it.write(f'task:{task_id} - {name}')
                 time.sleep(sleep)
             else:
-                graphs.write(f'problem with {name}: {res_json}')
+                it.write(f'problem with {name}: {res_json}')
+
+    @main.command()
+    @host_option
+    @click.option('-p', '--public', is_flag=True)
+    @click.pass_obj
+    def upload_all(repository: BELRepository, host: str, public: bool):
+        """Upload the combine graph."""
+        graph = repository.get_graph()
+        res = to_web(graph, host=host, public=public)
+        res_json = res.json()
+        task_id = res_json.get('task_id')
+        if task_id is not None:
+            click.echo(f'task:{task_id} - {graph}')
+        else:
+            click.echo(f'problem with {graph.name}: {res_json}')
 
     @main.command()
     @click.confirmation_option()
@@ -400,9 +418,9 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         """Output an HTML summary."""
         graph = bel_repository.get_graph()
         try:
-            import pybel_tools.assembler.html
+            from pybel_tools.assembler.html import to_html_file
         except ImportError:
             click.secho('pybel_tools.assembler.html is not available', fg='red')
             sys.exit(1)
         else:
-            print(pybel_tools.assembler.html.to_html(graph), file=file)
+            to_html_file(graph, file)
