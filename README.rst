@@ -14,7 +14,7 @@ The latest version can be installed from GitHub with:
 
 .. code-block:: bash
 
-   $ pip install git+https://github.com/cthoyt/bel-repository.git
+   $ pip install git+https://github.com/pybel/bel-repository.git
 
 Usage
 -----
@@ -37,8 +37,8 @@ References
 .. [1] Hoyt, C. T., *et al.* (2017). `PyBEL: a computational framework for Biological Expression
        Language <https://doi.org/10.1093/bioinformatics/btx660>`_. Bioinformatics (Oxford, England), 34(4), 703–704.
 
-.. |build| image:: https://travis-ci.com/cthoyt/bel-repository.svg?branch=master
-    :target: https://travis-ci.com/cthoyt/bel-repository
+.. |build| image:: https://travis-ci.com/pybel/bel-repository.svg?branch=master
+    :target: https://travis-ci.com/pybel/bel-repository
 
 .. |python_versions| image:: https://img.shields.io/pypi/pyversions/bel_repository.svg
     :alt: Stable Supported Python Versions
