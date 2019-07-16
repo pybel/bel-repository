@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 from bel_repository import BELRepository
-from pybel import to_bel_path
+from pybel import to_bel_path, to_json_path, to_pickle
 from pybel.examples import egf_graph
 from pybel.testing.cases import TemporaryCacheMixin
 
@@ -21,7 +21,11 @@ class TestRepository(TemporaryCacheMixin):
 
         with tempfile.TemporaryDirectory() as temporary_directory:
             bel_path = os.path.join(temporary_directory, name)
+            json_path = os.path.join(temporary_directory, f'{name}.json')
+            pickle_path = os.path.join(temporary_directory, f'{name}.pickle')
             to_bel_path(egf_graph, bel_path)
+            to_json_path(egf_graph, json_path)
+            to_pickle(egf_graph, pickle_path)
 
             repository = BELRepository(temporary_directory)
             graphs = repository.get_graphs(
@@ -34,11 +38,17 @@ class TestRepository(TemporaryCacheMixin):
             self.assertIn(bel_path, graphs)
             graph = graphs[bel_path]
             self.assertEqual(graph.document, egf_graph.document)
-            self.assertEqual(set(graph.nodes()), set(egf_graph.nodes()))
-            self.assertEqual(set(graph.edges()), set(egf_graph.edges()))
+            self.assertEqual(set(graph.nodes()), set(egf_graph.nodes()), msg=f"""
+            Original nodes: {set(egf_graph.nodes())}
+            New nodes:      {set(graph.nodes())}
+            """)
+            self.assertEqual(set(graph.edges()), set(egf_graph.edges()), msg=f"""
+            Original edges: {set(egf_graph.edges())}
+            New edges:      {set(graph.edges())}
+            """)
 
-            self.assertTrue(os.path.exists(os.path.join(temporary_directory, f'{name}.json')))
-            self.assertTrue(os.path.exists(os.path.join(temporary_directory, f'{name}.pickle')))
+            self.assertTrue(os.path.exists(json_path))
+            self.assertTrue(os.path.exists(pickle_path))
 
 
 if __name__ == '__main__':
