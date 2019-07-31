@@ -47,6 +47,9 @@ class BELRepository:
     global_summary_ext: str = 'summary.tsv'
     warnings_ext: str = 'warnings.tsv'
 
+    #: Arguments passed to :func:`pybel.from_path` during compilation
+    from_path_kwargs: Mapping[str, Any] = field(default_factory=dict)
+
     #: The location where the summary DataFrame will be output as a TSV.
     bel_summary_path: str = field(init=False)
 
@@ -197,6 +200,7 @@ class BELRepository:
                     continue
 
             _from_path_kwargs = from_path_kwargs or {}
+            _from_path_kwargs.update(self.from_path_kwargs)
 
             try:
                 graph = rv[path] = from_path(path, manager=manager, **_from_path_kwargs)
