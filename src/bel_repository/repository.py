@@ -95,6 +95,15 @@ class BELRepository:
         for root, file_name in self.iterate_bel():
             self._remove_root_file_name(root, file_name)
 
+    def clear_local_warned(self) -> None:
+        """Clear caches for BEL documents with errors."""
+        for root, file_name in self.iterate_bel():
+            if self._has_warnings(root, file_name):
+                self._remove_root_file_name(root, file_name)
+
+    def _has_warnings(self, root: str, file_name: str) -> bool:
+        return os.path.exists(self._build_warnings_path(root, file_name))
+
     def _remove_root_file_name(self, root: str, file_name: str) -> None:
         for extension, path in self._iterate_extension_path(root, file_name):
             if os.path.exists(path):
@@ -385,6 +394,13 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
     def uncache_local(bel_repository: BELRepository):
         """Clear the cached data for the repository."""
         bel_repository.clear_local_caches()
+
+    @main.command()
+    @click.confirmation_option()
+    @click.pass_obj
+    def uncache_warned(bel_repository: BELRepository):
+        """Clear the cached data for the documents that have warnings."""
+        bel_repository.clear_local_warned()
 
     @main.command()
     @connection_option
