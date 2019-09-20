@@ -143,12 +143,12 @@ class BELRepository:
         self._export_local(graph, self.output_directory, self.bel_cache_name)
 
     def get_graph(
-            self,
-            manager: Optional[Manager] = None,
-            use_cached: bool = True,
-            use_tqdm: bool = False,
-            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-            from_path_kwargs: Optional[Mapping[str, Any]] = None,
+        self,
+        manager: Optional[Manager] = None,
+        use_cached: bool = True,
+        use_tqdm: bool = False,
+        tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+        from_path_kwargs: Optional[Mapping[str, Any]] = None,
     ) -> BELGraph:
         """Get a combine graph."""
         if use_cached:
@@ -183,12 +183,12 @@ class BELRepository:
         ))
 
     def get_graphs(
-            self,
-            manager: Optional[Manager] = None,
-            use_cached: bool = True,
-            use_tqdm: bool = False,
-            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-            from_path_kwargs: Optional[Mapping[str, Any]] = None,
+        self,
+        manager: Optional[Manager] = None,
+        use_cached: bool = True,
+        use_tqdm: bool = False,
+        tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+        from_path_kwargs: Optional[Mapping[str, Any]] = None,
     ) -> Mapping[str, BELGraph]:
         """Get a mapping of all graphs' paths to their compiled BEL graphs."""
         if manager is None:
@@ -224,13 +224,13 @@ class BELRepository:
         return rv
 
     def get_summary_df(
-            self,
-            manager: Optional[Manager] = None,
-            use_cached: bool = False,
-            use_tqdm: bool = False,
-            tqdm_kwargs: Optional[Mapping[str, Any]] = None,
-            from_path_kwargs: Optional[Mapping[str, Any]] = None,
-            save: Union[bool, str, TextIO] = True,
+        self,
+        manager: Optional[Manager] = None,
+        use_cached: bool = False,
+        use_tqdm: bool = False,
+        tqdm_kwargs: Optional[Mapping[str, Any]] = None,
+        from_path_kwargs: Optional[Mapping[str, Any]] = None,
+        save: Union[bool, str, TextIO] = True,
     ) -> pd.DataFrame:
         """Get a pandas DataFrame summarizing the contents of all graphs in the repository."""
         graphs = self.get_graphs(

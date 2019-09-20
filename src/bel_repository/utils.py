@@ -26,10 +26,10 @@ def to_summary_json_path(graph: BELGraph, path: str, **kwargs) -> None:
 
 
 def to_summary_json_file(
-        graph: BELGraph,
-        file: Optional[TextIO] = None,
-        indent: int = 2,
-        **kwargs
+    graph: BELGraph,
+    file: Optional[TextIO] = None,
+    indent: int = 2,
+    **kwargs
 ) -> None:
     """Write a summary JSON of the graph to a file."""
     json.dump(to_summary_json(graph), file, indent=indent, **kwargs)
