@@ -4,10 +4,9 @@
 
 import os
 import tempfile
-import unittest
 
 from bel_repository import BELRepository
-from pybel import to_bel_path, to_json_path, to_pickle
+from pybel import to_bel_script, to_nodelink_file, to_pickle
 from pybel.examples import egf_graph
 from pybel.testing.cases import TemporaryCacheMixin
 
@@ -23,8 +22,8 @@ class TestRepository(TemporaryCacheMixin):
             bel_path = os.path.join(temporary_directory, name)
             json_path = os.path.join(temporary_directory, f'{name}.json')
             pickle_path = os.path.join(temporary_directory, f'{name}.pickle')
-            to_bel_path(egf_graph, bel_path)
-            to_json_path(egf_graph, json_path)
+            to_bel_script(egf_graph, bel_path)
+            to_nodelink_file(egf_graph, json_path)
             to_pickle(egf_graph, pickle_path)
 
             repository = BELRepository(temporary_directory)
@@ -49,7 +48,3 @@ class TestRepository(TemporaryCacheMixin):
 
             self.assertTrue(os.path.exists(json_path))
             self.assertTrue(os.path.exists(pickle_path))
-
-
-if __name__ == '__main__':
-    unittest.main()
