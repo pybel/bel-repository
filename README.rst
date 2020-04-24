@@ -31,6 +31,14 @@ Usage
     # Get a mapping from paths to graphs
     graphs: Mapping[str, BELGraph] = bel_repository.get_graphs()
 
+Example BEL Repositories
+------------------------
+Each of these repositories has BEL content that can be pip installed:
+
+- https://github.com/cthoyt/selventa-knowledge/
+- https://github.com/pharmacome/conib
+- https://github.com/hemekg/hemekg
+- https://github.com/covid19kg/covid19kg
 
 References
 ----------

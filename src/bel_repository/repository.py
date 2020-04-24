@@ -16,7 +16,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import pybel
-from pybel import BELGraph, Manager, from_bel_script, to_indra_statements, to_web, union
+from pybel import BELGraph, Manager, union
 from pybel.cli import connection_option, host_option
 from pybel.constants import CITATION, CITATION_DB, CITATION_IDENTIFIER
 from pybel.manager.citation_utils import enrich_pubmed_citations
@@ -180,7 +180,7 @@ class BELRepository:
         :rtype: List[indra.statements.Statement]
         """
         return list(chain.from_iterable(
-            to_indra_statements(graph)
+            pybel.to_indra_statements(graph)
             for graph in self.get_graphs(**kwargs).values()
         ))
 
@@ -214,7 +214,7 @@ class BELRepository:
             _from_path_kwargs.update(self.from_path_kwargs)
 
             try:
-                graph = rv[path] = from_bel_script(path, manager=manager, **_from_path_kwargs)
+                graph = rv[path] = pybel.from_bel_script(path, manager=manager, **_from_path_kwargs)
                 graph.path = os.path.relpath(os.path.join(root, file_name), self.directory)
             except Exception as exc:
                 logger.warning(f'problem with {path}: {exc}')
@@ -352,7 +352,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
         """Upload all to BEL Commons."""
         it = tqdm(repository.get_graphs().items())
         for name, graph in it:
-            res = to_web(graph, host=host, public=public)
+            res = pybel.to_bel_commons(graph, host=host, public=public)
             res_json = res.json()
             task_id = res_json.get('task_id')
             if task_id is not None:
@@ -368,7 +368,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
     def upload_all(repository: BELRepository, host: str, public: bool):
         """Upload the combine graph."""
         graph = repository.get_graph()
-        res = to_web(graph, host=host, public=public)
+        res = pybel.to_bel_commons(graph, host=host, public=public)
         res_json = res.json()
         task_id = res_json.get('task_id')
         if task_id is not None:
