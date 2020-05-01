@@ -8,7 +8,7 @@ Installation |pypi_version| |python_versions| |pypi_license|
 
 .. code-block:: bash
 
-   $ pip install bel_repository
+   $ pip install bel-repository
 
 The latest version can be installed from GitHub with:
 
@@ -31,6 +31,9 @@ Usage
     # Get a mapping from paths to graphs
     graphs: Mapping[str, BELGraph] = bel_repository.get_graphs()
 
+    # Get a combine graph
+    graph: BELGraph = bel_repository.get_graph()
+
 Example BEL Repositories
 ------------------------
 Each of these repositories has BEL content that can be pip installed:
@@ -39,6 +42,10 @@ Each of these repositories has BEL content that can be pip installed:
 - https://github.com/pharmacome/conib
 - https://github.com/hemekg/hemekg
 - https://github.com/covid19kg/covid19kg
+- https://github.com/neurommsig-epilepsy/neurommsig-epilepsy
+
+More publicly available BEL content can be found in the listing in
+`this blog post <https://cthoyt.com/2020/04/30/public-bel-content.html>`_.
 
 References
 ----------
