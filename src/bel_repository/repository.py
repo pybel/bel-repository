@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 import pybel
 from pybel import BELGraph, Manager, union
-from pybel.cli import connection_option, host_option
+from pybel.cli import connection_option, host_option, password_option, user_option
 from pybel.constants import CITATION, CITATION_DB, CITATION_IDENTIFIER
 from pybel.manager.citation_utils import enrich_pubmed_citations
 from .constants import IO_MAPPING, LOCAL_SUMMARY_EXT, OUTPUT_KWARGS
@@ -31,6 +31,8 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+private_option = click.option('--private', is_flag=True)
 
 
 @dataclass
@@ -345,34 +347,40 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
 
     @main.command()
     @host_option
+    @user_option
+    @password_option
     @click.option('-s', '--sleep', type=int, default=3, help='Seconds to sleep between sending')
-    @click.option('-p', '--public', is_flag=True)
+    @private_option
     @click.pass_obj
-    def upload(repository: BELRepository, host: str, sleep, public: bool):
+    def upload_separate(repository: BELRepository, host: str, user: str, password: str, sleep: int, private: bool):
         """Upload all to BEL Commons."""
         it = tqdm(repository.get_graphs().items())
         for name, graph in it:
-            res = pybel.to_bel_commons(graph, host=host, public=public)
+            res = pybel.to_bel_commons(graph, host=host, user=user, password=password, public=not private)
             res_json = res.json()
             task_id = res_json.get('task_id')
             if task_id is not None:
                 it.write(f'task:{task_id} - {name}')
+                it.write(f'see: {host.rstrip("/")}/api/task/{task_id}')
                 time.sleep(sleep)
             else:
                 it.write(f'problem with {name}: {res_json}')
 
     @main.command()
     @host_option
-    @click.option('-p', '--public', is_flag=True)
+    @user_option
+    @password_option
+    @private_option
     @click.pass_obj
-    def upload_all(repository: BELRepository, host: str, public: bool):
+    def upload_combine(repository: BELRepository, host: str, user: str, password: str, private: bool):
         """Upload the combine graph."""
         graph = repository.get_graph()
-        res = pybel.to_bel_commons(graph, host=host, public=public)
+        res = pybel.to_bel_commons(graph, host=host, user=user, password=password, public=not private)
         res_json = res.json()
         task_id = res_json.get('task_id')
         if task_id is not None:
             click.echo(f'task:{task_id} - {graph}')
+            click.echo(f'see: {host.rstrip("/")}/api/task/{task_id}')
         else:
             click.echo(f'problem with {graph.name}: {res_json}')
 
