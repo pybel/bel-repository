@@ -13,7 +13,6 @@ from typing import Any, Iterable, Mapping, Optional, Set, TextIO, Tuple, Union
 
 import click
 import pandas as pd
-import pyobo
 from pyobo.cli_utils import verbose_option
 from tqdm import tqdm
 
