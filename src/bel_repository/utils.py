@@ -45,5 +45,5 @@ def to_summary_json(graph: BELGraph) -> Mapping[str, Any]:
         'Number of URL Annotations': len(graph.annotation_url),
         'Number of Regex Annotations': len(graph.annotation_pattern),
         'Number of Local Annotations': len(graph.annotation_list),
-        **graph.summary_dict()
+        **graph.summarize.dict(),
     }

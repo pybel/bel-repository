@@ -13,14 +13,15 @@ from typing import Any, Iterable, Mapping, Optional, Set, TextIO, Tuple, Union
 
 import click
 import pandas as pd
+import pyobo
+from pyobo.cli_utils import verbose_option
 from tqdm import tqdm
 
 import pybel
 from pybel import BELGraph, Manager, union
 from pybel.cli import connection_option, host_option, password_option, user_option
-from pybel.constants import CITATION, CITATION_DB, CITATION_IDENTIFIER
+from pybel.constants import CITATION
 from pybel.manager.citation_utils import enrich_pubmed_citations
-from .constants import IO_MAPPING, LOCAL_SUMMARY_EXT, OUTPUT_KWARGS
 from .metadata import BELMetadata
 from .utils import to_summary_json
 from .version import get_version
@@ -34,6 +35,12 @@ logger = logging.getLogger(__name__)
 
 private_option = click.option('--private', is_flag=True)
 
+OUTPUT_KWARGS = {
+    'nodelink.json': dict(indent=2, sort_keys=True),
+    'cx.json': dict(indent=2, sort_keys=True),
+    'jgif.json': dict(indent=2, sort_keys=True),
+}
+
 
 @dataclass
 class BELRepository:
@@ -44,7 +51,7 @@ class BELRepository:
 
     bel_cache_name: str = '_cache.bel'
     metadata: Optional[BELMetadata] = None
-    formats: Tuple[str, ...] = ('pickle', 'nodelink.json', 'summary.json')
+    formats: Tuple[str, ...] = ('pickle', 'nodelink.json')
 
     #: Must include {file_name} and {extension}
     cache_fmt: str = '{file_name}.{extension}'
@@ -74,7 +81,7 @@ class BELRepository:
         return self._build_cache_ext_path(root, file_name, self.warnings_ext.lstrip('.'))
 
     def _build_summary_path(self, root: str, file_name: str) -> str:
-        return self._build_cache_ext_path(root, file_name, LOCAL_SUMMARY_EXT)
+        return self._build_cache_ext_path(root, file_name, 'summary.json')
 
     def _build_cache_ext_path(self, root: str, file_name: str, extension: str) -> str:
         return os.path.join(root, self.cache_fmt.format(file_name=file_name, extension=extension.lstrip('.')))
@@ -119,9 +126,8 @@ class BELRepository:
 
     def _import_local(self, root: str, file_name: str) -> Optional[BELGraph]:
         for extension, path in self._iterate_extension_path(root, file_name):
-            _, importer = IO_MAPPING[extension]
-            if importer is not None and os.path.exists(path):
-                return importer(path)
+            if os.path.exists(path):
+                return pybel.load(path)
 
         return None
 
@@ -130,9 +136,11 @@ class BELRepository:
 
     def _export_local(self, graph: BELGraph, root: str, file_name: str) -> None:
         for extension, path in self._iterate_extension_path(root, file_name):
-            exporter, _ = IO_MAPPING[extension]
             kwargs = OUTPUT_KWARGS.get(extension, {})
-            exporter(graph, path, **kwargs)
+            pybel.dump(graph, path, **kwargs)
+
+        with open(self._build_summary_path(root, file_name), 'w') as file:
+            json.dump(to_summary_json(graph), file, indent=2)
 
         if graph.warnings:
             logger.info(f' - {graph.number_of_warnings()} warnings')
@@ -291,7 +299,7 @@ class BELRepository:
         for _, _, data in self.get_graph(**kwargs).edges(data=True):
             citation = data.get(CITATION)
             if citation is not None:
-                yield citation[CITATION_DB], citation[CITATION_IDENTIFIER]
+                yield citation.namespace, citation.identifier
 
 
 def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
@@ -417,6 +425,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
     @connection_option
     @click.option('-r', '--reload', is_flag=True)
     @click.option('--no-tqdm', is_flag=True)
+    @verbose_option
     @click.pass_obj
     def compile(bel_repository: BELRepository, connection: str, reload: bool, no_tqdm: bool):
         """Summarize the repository."""
@@ -440,7 +449,7 @@ def append_click_group(main: click.Group) -> None:  # noqa: D202, C901
                 ),
             ),
         )
-        click.echo(graph.summary_str())
+        click.echo(graph.summarize.str())
 
     @main.command()
     @click.argument('file', type=click.File('w'))
